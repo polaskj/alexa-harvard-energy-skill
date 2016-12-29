@@ -1,0 +1,14 @@
+GetEnergyData energy and facilities
+GetEnergyData energy and utilities
+
+GetEnergyData what it's {PowerSource} is
+GetEnergyData what their {PowerSource} is
+GetEnergyData what the {PowerSource} is
+GetEnergyData about their {PowerSource}
+GetEnergyData about their {PowerSource} usage
+
+GetEnergyData what it's total {PowerSource} is
+GetEnergyData what their total {PowerSource} is
+GetEnergyData what the total {PowerSource} is
+GetEnergyData about their total {PowerSource}
+GetEnergyData about their total {PowerSource} usage

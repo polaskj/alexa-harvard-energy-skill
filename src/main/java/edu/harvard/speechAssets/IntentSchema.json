@@ -1,0 +1,13 @@
+{
+  "intents": [
+    {
+      "intent": "GetEnergyData",
+      "slots": [
+        {
+          "name": "PowerSource",
+          "type": "LIST_OF_OPTIONS"
+        }
+      ]
+    }
+  ]
+}
