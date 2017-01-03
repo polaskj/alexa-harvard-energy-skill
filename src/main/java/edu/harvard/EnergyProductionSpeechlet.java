@@ -40,18 +40,9 @@ import com.amazon.speech.ui.SimpleCard;
 public class EnergyProductionSpeechlet implements Speechlet {
     private static final Logger log = LoggerFactory.getLogger(EnergyProductionSpeechlet.class);
 
-    private static final String LAST_OPTION_KEY = "LAST_OPTION";
     private static final String POWER_SOURCE_SLOT = "PowerSource";
-//    private static final Map<String, String> OPTION_TO_TAG_MAP;
-//    static
-//    {
-//        OPTION_TO_TAG_MAP = new HashMap<String, String>();
-//        OPTION_TO_TAG_MAP.put("Blackstone Electricity Production", "BlackStnTurboGen");
-//        OPTION_TO_TAG_MAP.put("Chilled Water Production", "CombinedPlant.Tons.CUP");
-//        OPTION_TO_TAG_MAP.put("Steam Production", "PLANT.STMOUT.Plant");
-//        OPTION_TO_TAG_MAP.put("Total Electricity Demand", "System_ELE_HarvardPurchGenTotal_PowerReal_000_SUM");
-//
-//    }
+    private static final String ENERGY_API_URL = "https://apps2.campusservices.harvard.edu/energy/api?callback=alexa_data";
+
     @Override
     public void onSessionStarted(final SessionStartedRequest request, final Session session)
             throws SpeechletException {
@@ -83,9 +74,6 @@ public class EnergyProductionSpeechlet implements Speechlet {
         if ("GetEnergyData".equals(intentName)) {
             return getPowerSourceData(intent, session);
         }
-// else if ("WhatsMyColorIntent".equals(intentName)) {
-//            return getColorFromSession(intent, session);
-//        }
         else {
             throw new SpeechletException("Invalid Intent");
         }
@@ -106,11 +94,13 @@ public class EnergyProductionSpeechlet implements Speechlet {
      */
     private SpeechletResponse getWelcomeResponse() {
         // Create the welcome message.
+
         String speechText =
-                "Welcome to the Alexa Skills Kit sample. Please tell me your favorite color by "
-                        + "saying, my favorite color is red";
+                "Welcome to Harvard Energy and Utilities micro-grid production and demand skill. You can ask me " +
+                        "questions about blackstone electricity production, steam production " +
+                        "chilled water production or water production";
         String repromptText =
-                "Please tell me your favorite color by saying, my favorite color is red";
+                "Please tell me about the utiltiy information you'd like to know more about.";
 
         return getSpeechletResponse(speechText, repromptText, true);
     }
@@ -130,13 +120,13 @@ public class EnergyProductionSpeechlet implements Speechlet {
         // Get the color slot from the list of slots.
         Slot powerSourceSlot = slots.get(POWER_SOURCE_SLOT);
         String speechText, repromptText;
-        JSONArray powerArray = null;
+        JSONArray energyArray = null;
         Double dataPoint = null;
         try {
-            String genreJson = IOUtils.toString(new URL("https://apps2.campusservices.harvard.edu/energy/api?callback=alexa").openStream());
+            String genreJson = IOUtils.toString(new URL(ENERGY_API_URL).openStream());
             JSONTokener t = new JSONTokener(genreJson);
             t.nextValue();
-            powerArray = (JSONArray) t.nextValue(); // skip the callback
+            energyArray = (JSONArray) t.nextValue(); // skip the callback
         } catch (IOException e) {
             log.warn("Couldn't fetch data from API");
             return getSpeechletResponse("The energy and utility service is currently unavailable. Please try again later.", null, false);
@@ -144,33 +134,33 @@ public class EnergyProductionSpeechlet implements Speechlet {
 
 
         String powerSource = powerSourceSlot.getValue();
-        String dataKey = null;
+        String piTagKey = null;
         if (powerSource.equals("electricity demand")){
             speechText = "Currently, %s megawatts of electricity is being consumed within buildings, " +
                     "supplied through the energy and facilities micro-grid.";
-            dataKey = "System_ELE_HarvardPurchGenTotal_PowerReal_000_SUM";
+            piTagKey = "System_ELE_HarvardPurchGenTotal_PowerReal_000_SUM";
         } else if (powerSource.endsWith("electricity production")){
             speechText = "Currently %s mega-watts of electricity is being produced by the Blackstone Steam Plant’s 5.7 " +
                     "mega-watt back-pressure turbine.";
-            dataKey = "BlackStnTurboGen";
+            piTagKey = "BlackStnTurboGen";
         } else if (powerSource.equals("steam production")){
             speechText = "Currently, %s pound per hour of steam is being produced by the four boilers within " +
                     "the Blackstone Steam Plant on Western Avenue.";
-            dataKey = "PLANT.STMOUT.Plant";
+            piTagKey = "PLANT.STMOUT.Plant";
         } else if (powerSource.equals("water production")){
             speechText = "Currently, %s tons of chilled water is being produced by a 13,000 ton central plant on Oxford Street " +
                     "and a 7,500 ton plant in the Northwest Building.";
-            dataKey = "CombinedPlant.Tons.CUP";
+            piTagKey = "CombinedPlant.Tons.CUP";
         } else {
             speechText = "Sorry I didn't understand.";
-            dataKey = "BlackStnTurboGen";
+            piTagKey = "BlackStnTurboGen";
         }
 
 
-        if (powerArray != null) {
-            for (int i = 0; i < powerArray.length(); i++) {
-                JSONObject item = powerArray.getJSONObject(i);
-                if (item.getString("name").equals(dataKey)) {
+        if (energyArray != null) {
+            for (int i = 0; i < energyArray.length(); i++) {
+                JSONObject item = energyArray.getJSONObject(i);
+                if (item.getString("name").equals(piTagKey)) {
                     dataPoint = item.getDouble("value");
                     break;
                 }
@@ -184,34 +174,7 @@ public class EnergyProductionSpeechlet implements Speechlet {
         return getSpeechletResponse(speechText, repromptText, false);
     }
 
-    /**
-     * Creates a {@code SpeechletResponse} for the intent and get the user's favorite color from the
-     * Session.
-     *
-     * @param intent
-     *            intent for the request
-     * @return SpeechletResponse spoken and visual response for the intent
-     */
-//    private SpeechletResponse getColorFromSession(final Intent intent, final Session session) {
-//        String speechText;
-//        boolean isAskResponse = false;
-//
-//        // Get the user's favorite color from the session.
-//        String favoriteColor = (String) session.getAttribute(LAST_OPTION_KEY);
-//
-//        // Check to make sure user's favorite color is set in the session.
-//        if (StringUtils.isNotEmpty(favoriteColor)) {
-//            speechText = String.format("Your favorite color is %s. Goodbye.", favoriteColor);
-//        } else {
-//            // Since the user's favorite color is not set render an error message.
-//            speechText =
-//                    "I'm not sure what your favorite color is. You can say, my favorite color is "
-//                            + "red";
-//            isAskResponse = true;
-//        }
-//
-//        return getSpeechletResponse(speechText, speechText, isAskResponse);
-//    }
+
 
     /**
      * Returns a Speechlet response for a speech and reprompt text.
