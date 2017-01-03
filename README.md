@@ -6,6 +6,7 @@ This repository is an Alexa skill which is an audible representation of this pag
 * Ask Harvard about their blackstone electricity production
 * Ask Harvard about their steam production
 * Ask Harvard about it's chilled water production
+
 (additional utterances can be added to Skill configuration.)
 
 ### Running Locally
@@ -40,5 +41,5 @@ Hit endpoint:```curl -v -k https://localhost:8888/energy --data-binary  '{
 * Build the project via Maven: `mvn assembly:assembly -DdescriptorId=jar-with-dependencies package`, which generates `alexa-harvard-energy-skill-0.1-jar-with-dependencies.jar`
 * Upload the jar to an S3 bucket
 * Create an AWS Lamda using the uploaded artifcact
-* Populate the Skill's' configuration using Intent Schema, Custom Slot Type, and Utterances from the `edu.harvard.resources` package.
+* Populate the Skill's' configuration using Intent Schema, Custom Slot Type, and Utterances from the `edu.harvard.resources` package, in this project.
 * Use the Test simulator or Echo associated to your developer account to test functionality. 
